@@ -21,3 +21,11 @@ export const deliveries = sqliteTable('deliveries', {
   status: text('status').notNull().default('PICKED_UP'),
   updatedAt: text('updated_at').default('CURRENT_TIMESTAMP')
 });
+
+export const contacts = sqliteTable('contacts', {
+  id: text('id').primaryKey(),
+  businessName: text('business_name').notNull(),
+  phone: text('phone').notNull(),
+  address: text('address').notNull(),
+  note: text('note'),
+});

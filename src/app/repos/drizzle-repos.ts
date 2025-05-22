@@ -1,10 +1,11 @@
 import { eq, like, and, sql } from 'drizzle-orm';
 import { DrizzleD1Database } from 'drizzle-orm/d1';
 import { nanoid } from 'nanoid';
-import { recipients, deliveries } from '../../infra/schema';
-import { RecipientRepository, DeliveryRepository } from './repository-interfaces';
+import { recipients, deliveries, contacts } from '../../infra/schema';
+import { RecipientRepository, DeliveryRepository, ContactRepository } from './repository-interfaces';
 import { Recipient, Address } from '../../domain/recipient';
 import { Delivery } from '../../domain/delivery';
+import { Contact } from '../../domain/contact';
 
 export class DrizzleRecipientRepository implements RecipientRepository {
   constructor(private db: DrizzleD1Database) {}
@@ -12,7 +13,7 @@ export class DrizzleRecipientRepository implements RecipientRepository {
   async findById(id: string): Promise<Recipient | null> {
     const result = await this.db.select().from(recipients).where(eq(recipients.id, id)).get();
     if (!result) return null;
-    
+
     return new Recipient(
       result.id,
       result.name,
@@ -30,7 +31,7 @@ export class DrizzleRecipientRepository implements RecipientRepository {
       )
       .limit(10)
       .all();
-    
+
     return results.map(r => new Recipient(
       r.id,
       r.name,
@@ -81,9 +82,9 @@ export class DrizzleDeliveryRepository implements DeliveryRepository {
         recipient: true
       }
     });
-    
+
     if (!result) return null;
-    
+
     const recipient = new Recipient(
       result.recipient.id,
       result.recipient.name,
@@ -95,7 +96,7 @@ export class DrizzleDeliveryRepository implements DeliveryRepository {
       ),
       result.recipient.memo || undefined
     );
-    
+
     return new Delivery(
       result.id,
       recipient,
@@ -114,7 +115,7 @@ export class DrizzleDeliveryRepository implements DeliveryRepository {
         recipient: true
       }
     });
-    
+
     return results.map(r => {
       const recipient = new Recipient(
         r.recipient.id,
@@ -127,7 +128,7 @@ export class DrizzleDeliveryRepository implements DeliveryRepository {
         ),
         r.recipient.memo || undefined
       );
-      
+
       return new Delivery(
         r.id,
         recipient,
@@ -189,5 +190,77 @@ export class DrizzleDeliveryRepository implements DeliveryRepository {
       WHERE updated_at LIKE ${yearMonth + '%'}
       GROUP BY month ORDER BY month DESC
     `).all();
+  }
+}
+
+export class DrizzleContactRepository implements ContactRepository {
+  constructor(private db: DrizzleD1Database) {}
+
+  async findById(id: string): Promise<Contact | null> {
+    const result = await this.db.select().from(contacts).where(eq(contacts.id, id)).get();
+    if (!result) return null;
+
+    return new Contact(
+      result.id,
+      result.businessName,
+      result.phone,
+      result.address,
+      result.note || undefined
+    );
+  }
+
+  async findAll(): Promise<Contact[]> {
+    const results = await this.db.select().from(contacts).all();
+
+    return results.map(c => new Contact(
+      c.id,
+      c.businessName,
+      c.phone,
+      c.address,
+      c.note || undefined
+    ));
+  }
+
+  async findByBusinessName(businessName: string): Promise<Contact | null> {
+    const result = await this.db.select()
+      .from(contacts)
+      .where(eq(contacts.businessName, businessName))
+      .get();
+
+    if (!result) return null;
+
+    return new Contact(
+      result.id,
+      result.businessName,
+      result.phone,
+      result.address,
+      result.note || undefined
+    );
+  }
+
+  async save(contact: Contact): Promise<void> {
+    await this.db.insert(contacts).values({
+      id: contact.id || nanoid(),
+      businessName: contact.businessName,
+      phone: contact.phone,
+      address: contact.address,
+      note: contact.note
+    }).run();
+  }
+
+  async update(contact: Contact): Promise<void> {
+    await this.db.update(contacts)
+      .set({
+        businessName: contact.businessName,
+        phone: contact.phone,
+        address: contact.address,
+        note: contact.note
+      })
+      .where(eq(contacts.id, contact.id))
+      .run();
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.db.delete(contacts).where(eq(contacts.id, id)).run();
   }
 }
