@@ -1,0 +1,8 @@
+name = "delivery-hg-back"
+main = "src/index.ts"
+compatibility_date = "2023-05-21"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "deliveries_db"
+database_id = "37fc10e1-0327-4f2c-8201-88cdf09b0253"

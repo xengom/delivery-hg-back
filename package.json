@@ -1,0 +1,25 @@
+{
+  "name": "delivery-hg-back",
+  "version": "1.0.0",
+  "description": "Backend for Delivery Tracker",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "jest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply deliveries_db"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20250521.0",
+    "drizzle-orm": "^0.43.1",
+    "hono": "^4.7.10",
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.1",
+    "jest": "^29.7.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.16.0"
+  }
+}
